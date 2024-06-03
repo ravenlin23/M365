@@ -10,11 +10,12 @@ def print_upload_progress(offset,file_size):
     print("Uploaded '{0}' bytes from '{1}'...[{2}%]".format(offset, file_size, round(offset / file_size * 100, 2)))
 
 def upload_files_to_sharepoint(local_folder_path, sharepoint_folder_url):
-    success_count = 0 # Initialize a counter for successful uploads
+    success_count = 1 # Initialize a counter for successful uploads
+    i = 1
     for item in os.listdir(local_folder_path):
         local_item_path = os.path.join(local_folder_path, item)
         sharepoint_item_url = os.path.join(sharepoint_folder_url, item)
-        
+        print(i)
         if os.path.isdir(local_item_path):
             # Create folder in SharePoint if it doesn't exist
             ctx.web.folders.add(sharepoint_item_url).execute_query()
@@ -26,28 +27,31 @@ def upload_files_to_sharepoint(local_folder_path, sharepoint_folder_url):
                 file_size = os.path.getsize(local_item_path)
                 if file_size > 250 * 1024 * 1024:
                     # Upload the file in chunks
-                    size_chunk = 1000000  # 1MB
+                    # size_chunk = 1000000  # 1MB
+                    size_chunk = 200 * 1024 * 1024
                     with open(local_item_path, 'rb') as file_content:
                          # Get a reference to the target folder in SharePoint
-                        print("Start upload {item}")
+                        print(f"{success_count} Start upload {local_item_path}")
                         target_folder = ctx.web.get_folder_by_server_relative_url(sharepoint_folder_url)
                         result_file = target_folder.files.create_upload_session(file_content, size_chunk, lambda offset:print_upload_progress(offset,file_size)).execute_query()
-                        logging.info(f"Upload of {item} completed successfully")
-                        success_count += 1 # Increment the counter for successful uploads
+                        logging.info(f"Upload of {local_item_path} completed successfully")
+                        # success_count += 1 # Increment the counter for successful uploads
                 else:
                     with open(local_item_path, 'rb') as file_content:
+                        print(f"{success_count} Start upload {local_item_path}")
                         target_folder = ctx.web.get_folder_by_server_relative_url(sharepoint_folder_url)
                         result_file = target_folder.upload_file(item, file_content).execute_query()
-                        logging.info(f"Upload of {item} completed successfully")
-                        success_count += 1 # Increment the counter for successful uploads
+                        logging.info(f"Upload of {local_item_path} completed successfully")
+                success_count += 1 # Increment the counter for successful uploads
             except Exception as e:
-                logging.error(f"Failed to upload file {item}. Error: {e}")
+                logging.error(f"Failed to upload file {local_item_path}. Error: {e}")
                 continue # Continue with the next file
+        i += 1
     return success_count # Return the total count of successful uploads
 
-site_url= 'https://test.sharepoint.com/sites/test/HRD'
-username = "test@test.com.hk"
-password = "abcd1234"
+site_url= ''
+username = ""
+password = ""
 
 ctx_auth = AuthenticationContext(url=site_url)
 if ctx_auth.acquire_token_for_user(username, password):
@@ -56,5 +60,5 @@ else:
     print(ctx_auth.get_last_error())
 
 # Corrected usage
-success_count = upload_files_to_sharepoint("D:/test", "Shared Documents/test")
+success_count = upload_files_to_sharepoint("", "Shared Documents/")
 logging.info(f"Total files successfully uploaded: {success_count}")
