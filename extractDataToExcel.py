@@ -45,7 +45,7 @@ def read_config():
     config_path = 'config.ini'
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file {config_path} not found. Please make sure it is in the same directory as the program.")
-        # raise FileNotFoundError(f"配置文件 {config_path} 未找到。请确保它与程序在同一目录。")
+        
     
     config = configparser.ConfigParser()
     with codecs.open(config_path, 'r', encoding='utf-8') as f:
@@ -83,7 +83,7 @@ def main(content_to_search, days):
         template_path = 'template.xlsx'
         if not os.path.exists(template_path):
             raise FileNotFoundError(f"Template file {template_path} not found. Please make sure it is in the same directory as the program.")
-            # raise FileNotFoundError(f"模板文件 {template_path} 未找到。请确保它与程序在同一目录。")
+            
 
         for item in all_data:
             workbook = load_workbook(template_path)
